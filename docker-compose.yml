@@ -2,6 +2,7 @@ services:
   app:
     build: ./infra/php
     user: "1000:1000"
+    working_dir: /data
     volumes:
       - ./src:/data
     depends_on:
