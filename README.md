@@ -1,13 +1,14 @@
 # Laravel Docker Environment
 
-PHP 8.3 + nginx + MySQL を使用した Laravel プロジェクト用の Docker 環境です。
+- Udemyのフルスタックエンジニアになるためのスキルの学び方を学習するためのレポジトリです
+- PHP 8.3 + nginx + MySQL を使用した Laravel プロジェクト用の Docker 環境です。
 
 ## 構成
 
 - **PHP**: 8.3-fpm (Composer 2.7 含む)
 - **Web Server**: nginx 1.25-alpine
 - **Database**: MySQL 8.0
-- **Port**: 60 (HTTP), 3360 (MySQL)
+- **Port**: 80 (HTTP), 3380 (MySQL)
 
 ## 使い方
 
@@ -30,8 +31,7 @@ docker-compose up -d
 
 ### 4. アクセス
 
-- アプリケーション: http://localhost:60
-- データベース: localhost:3360
+- アプリケーション: http://localhost
 
 ## よく使うコマンド
 
@@ -62,8 +62,7 @@ docker-compose down -v
 
 本番環境では以下を想定：
 
-- Aurora MySQL（ローカルの MySQL は使用しない）
-- CloudFront + ACM（SSL 証明書の自動管理）
+- Aurora MySQL（ローカルの MySQL は使用しないケースを想定）
 
 ```bash
 # 本番環境での起動
