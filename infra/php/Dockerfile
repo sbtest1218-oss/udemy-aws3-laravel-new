@@ -15,7 +15,7 @@ RUN apt-get update && \
   docker-php-ext-install intl pdo_mysql zip bcmath gd
 
 # Node.jsとnpmをインストール
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
     apt-get install -y nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -24,7 +24,9 @@ COPY ./php.ini /usr/local/etc/php/php.ini
 
 # アプリケーション用ユーザーを作成（UID/GIDを1000に設定）
 RUN groupadd -g 1000 appuser && \
-    useradd -u 1000 -g appuser -m appuser
+    useradd -u 1000 -g appuser -m appuser && \
+    mkdir -p /data && \
+    chown -R appuser:appuser /data
 
 USER appuser
 WORKDIR /data
