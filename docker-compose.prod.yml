@@ -1,3 +1,14 @@
+# 本番用の差分定義
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# nginx の公開ポートはこのファイルではなく、サーバー側の .env で指定する：
+#   WEB_PORT=80
+# （compose は複数ファイルの ports を「上書き」ではなく「追加」するため、
+#   ここで再定義すると開発用の 8086 も同時に公開されてしまう）
+#
+# Vite(5173) と MySQL(3386) はベース側で 127.0.0.1 に固定済みのため、
+# 本番でも外部には公開されない。
 services:
   app:
     user: "1000:1000"
@@ -9,8 +20,6 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
 
   web:
-    ports:
-      - 80:80
     volumes:
-      - ./src:/data
-      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src:/data:ro
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

@@ -8,6 +8,11 @@ on:
   pull_request:
     branches: [ main, master, develop ]
 
+# 同じブランチで新しいpushがあったら、古い実行はキャンセルする（CI時間の節約）
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # 実行する処理
 jobs:
   test:
@@ -16,37 +21,53 @@ jobs:
     steps:
     # 1. コードをチェックアウト
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v5
 
-    # 2. PHPをセットアップ
+    # 2. PHPをセットアップ（Laravel 13 は PHP 8.3 以上が必須）
+    #    Dockerコンテナと同じ 8.4 に揃えている
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         extensions: mbstring, pdo, pdo_sqlite
         coverage: none
 
-    # 3. Composerの依存関係をインストール
+    # 3. Composerのキャッシュディレクトリを取得
+    - name: Get composer cache directory
+      id: composer-cache
+      working-directory: src
+      run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+    # 4. 依存パッケージをキャッシュ（2回目以降のCIが大幅に速くなる）
+    - name: Cache composer packages
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    # 5. Composerの依存関係をインストール
+    #    --no-interaction: 対話プロンプトで止まらないようにする
     - name: Install dependencies
       working-directory: src
-      run: composer install --prefer-dist --no-progress
+      run: composer install --prefer-dist --no-progress --no-interaction
 
-    # 4. .envファイルをコピー
+    # 6. .envファイルをコピー
     - name: Copy .env
       working-directory: src
       run: cp .env.example .env
 
-    # 5. アプリケーションキーを生成
+    # 7. アプリケーションキーを生成
     - name: Generate app key
       working-directory: src
       run: php artisan key:generate
 
-    # 6. ディレクトリ権限を設定
+    # 8. ディレクトリ権限を設定
     - name: Set directory permissions
       working-directory: src
       run: chmod -R 777 storage bootstrap/cache
 
-    # 7. テストを実行
+    # 9. テストを実行
     - name: Run tests
       working-directory: src
       run: php artisan test

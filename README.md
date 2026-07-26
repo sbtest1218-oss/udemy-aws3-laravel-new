@@ -9,14 +9,17 @@ CI/CDでテストを自動化しています。
 # Laravel Docker Environment
 
 - Udemyのフルスタックエンジニアになるためのスキルの学び方を学習するためのレポジトリです
-- PHP 8.3 + nginx + MySQL を使用した Laravel プロジェクト用の Docker 環境です。
+- PHP 8.4 + nginx + MySQL を使用した Laravel プロジェクト用の Docker 環境です。
 
 ## 構成
 
-- **PHP**: 8.3-fpm (Composer 2.7 含む)
-- **Web Server**: nginx 1.25-alpine
-- **Database**: MySQL 8.0
-- **Port**: 80 (HTTP), 3380 (MySQL)
+- **Laravel**: 13.x（PHP 8.3 以上が必須）
+- **PHP**: 8.4-fpm (Composer 2.10 / Node.js 24 / OPcache 含む)
+- **Web Server**: nginx 1.30-alpine
+- **Database**: MySQL 8.4 (LTS)
+- **Port**: 8086 (HTTP), 3386 (MySQL), 5173 (Vite)
+  - MySQL と Vite は `127.0.0.1` にのみバインドしており、外部からは接続できません
+  - 本番では `.env` に `WEB_PORT=80` を指定して起動します
 
 ## 使い方
 

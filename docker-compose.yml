@@ -6,7 +6,10 @@ services:
     volumes:
       - ./src:/data
     depends_on:
-      - db
+      # DBが「起動した」だけでなく「接続を受け付けられる」まで待つ。
+      # これがないと初回起動時に migrate が接続エラーで落ちることがある
+      db:
+        condition: service_healthy
     environment:
       - DB_HOST=db
       - DB_PORT=3306
@@ -14,18 +17,23 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
     ports:
-      - 5173:5173
+      # Vite開発サーバー。127.0.0.1 に固定し、外部ネットワークには公開しない
+      # （ホストのブラウザからは http://localhost:5173 で従来どおり接続できる）
+      - 127.0.0.1:5173:5173
     restart: unless-stopped
     networks:
       - app-network
 
   web:
-    image: nginx:1.25-alpine
+    image: nginx:1.30-alpine
     ports:
-      - 8086:80
+      # 本番側で published ポートを上書きできるよう変数化している。
+      # prod用ファイルで ports を再定義すると「追加」扱いになり、
+      # 開発用の8086が本番でも公開されてしまうため
+      - ${WEB_PORT:-8086}:80
     volumes:
-      - ./src:/data
-      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src:/data:ro
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     working_dir: /data
     depends_on:
       - app
@@ -38,13 +46,21 @@ services:
     volumes:
       - db-store:/var/lib/mysql
     ports:
-      - 3386:3306
+      # 127.0.0.1 に固定。これがないと本番サーバーでMySQLが
+      # インターネットに直接晒される（Sequel Ace等からは 127.0.0.1:3386 で接続できる）
+      - 127.0.0.1:3386:3306
     environment:
       - MYSQL_DATABASE=${DB_DATABASE}
       - MYSQL_USER=${DB_USERNAME}
       - MYSQL_PASSWORD=${DB_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
       - TZ=Asia/Tokyo
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     restart: unless-stopped
     networks:
       - app-network
