@@ -18,3 +18,7 @@ yarn-error.log
 # Docker関連
 db-store/
 ssl/
+
+# AIエージェントが生成する設定（講座内で各自が作成するため、テンプレートには含めない）
+.agents/
+.claude/
