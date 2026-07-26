@@ -23,26 +23,45 @@ CI/CDでテストを自動化しています。
 
 ## 使い方
 
-### 1. 環境変数の設定
+Laravel アプリは `src/` にすでに入っています。`composer create-project` は不要です。
+
+### 1. 環境変数の設定（Docker 用）
 
 ```bash
 cp .env.example .env
-# 必要に応じて.envを編集
 ```
 
 ### 2. 開発環境の起動
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-### 3. Laravel プロジェクトの配置
+### 3. Laravel のセットアップ
 
-`src/` ディレクトリに Laravel プロジェクトを配置してください。
+`vendor/` と `.env` は Git 管理外のため、初回だけ以下を実行します。
+
+```bash
+docker compose exec app bash
+
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+
+exit
+```
 
 ### 4. アクセス
 
-- アプリケーション: http://localhost
+- アプリケーション: http://localhost:8086
+- ヘルスチェック: http://localhost:8086/up
+
+### 5. テストの実行
+
+```bash
+docker compose exec app php artisan test
+```
 
 ## よく使うコマンド
 
